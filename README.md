@@ -8,7 +8,7 @@ Distributed under terms of version 2 of the **GNU General Public License** as pu
 
 ### Related Files
 
-DM30 is basically DM100, additional comments (in Simp. Chinese) on how to patch the firmware can be found in this file:
+DM30 is basically DM100, related code was created by [smmei][2], and additional comments (in Simp. Chinese) can be found in this file:
 
 * `common/dm100.c`
 
@@ -50,3 +50,4 @@ mxs_reset_block()
 * `include/asm-arm/arch-mx23/mxs-block.h`
 
 [1]: https://www.kingjim.co.jp/pomera/dm30/
+[2]: https://www.cnblogs.com/sammei/
