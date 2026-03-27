@@ -410,14 +410,11 @@ static int create_bbt(struct mtd_info *mtd, uint8_t *buf,
 	if (chip == -1) {
 		/* Note that numblocks is 2 * (real numblocks) here, see i+=2
 		 * below as it makes shifting and masking less painful */
-		extern int dm100_patching_key(void);
-		if (dm100_patching_key()) {
-			//numblocks = mtd->size >> (this->bbt_erase_shift - 1);
-			numblocks = DM100_NF_OFFSET_FILESYSTEM1 >> (this->bbt_erase_shift - 1);
+		extern int dm30_patching_key(void);
+		if (dm30_patching_key()) {
+			numblocks = DM30_FLASH_OFFSET_FILESYSTEM1 >> (this->bbt_erase_shift - 1);
 		} else {
-			/* 正常启动时，我们只希望读user_prog正确即可，所以只检
-			 * 查DATABASE之前的坏块，加快启动速度 */
-			numblocks = DM100_NF_OFFSET_RESERVE >> (this->bbt_erase_shift - 1);
+			numblocks = DM30_FLASH_OFFSET_RESERVE >> (this->bbt_erase_shift - 1);
 		}
 		startblock = 0;
 		from = 0;

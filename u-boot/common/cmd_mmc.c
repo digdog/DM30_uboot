@@ -21,41 +21,9 @@
  * MA 02111-1307 USA
  */
 
-#define DEBUG
-
 #include <common.h>
 #include <command.h>
 #include <mmc.h>
-
-#ifdef DEBUG
-#include <asm/arch/timrot.h>
-
-#define TIMCTRL		TIMCTRL0
-#define TIMCOUNT	TIMCOUNT0
-
-#define READ_TIMER ((REG_RD(TIMROT_BASE + TIMCOUNT) & 0xffff0000) >> 16)
-
-#define time_test_start() 				\
-	{						\
-		uint32_t __t1, __t2, __t;		\
-		__t1 = READ_TIMER;
-
-
-#define time_test_end()						\
-		do {						\
-			__t2 = READ_TIMER;			\
-		       if (__t1 > __t2)				\
-			       __t = __t1 - __t2;		\
-		       else					\
-			       __t = __t1 + 0xffff - __t2;	\
-		       pr_info("%u ms\n", __t);			\
-		} while (0);					\
-	}
-
-#else
-#define time_test_end()
-#define time_test_start()
-#endif
 
 #ifndef CONFIG_GENERIC_MMC
 static int curr_device = -1;
@@ -318,6 +286,14 @@ int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			return 0;
 		}
 
+		else if (!strcmp(argv[1], "upgrade") && !strcmp(argv[2], "uboot")) {
+			extern int dm30_upgrade_uboot(void);
+			dm30_upgrade_uboot();
+			return 0;
+		}
+
+
+
 	case 0:
 	case 1:
 	case 4:
@@ -368,9 +344,7 @@ int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				}
 			}
 #endif
-			time_test_start();
 			n = mmc->block_dev.block_read(dev, blk, cnt, addr);
-			time_test_end();
 
 			/* flush cache after read */
 			flush_cache((ulong)addr, cnt * 512); /* FIXME */
@@ -429,9 +403,7 @@ int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			}
 #endif
 
-			time_test_start();
 			n = mmc->block_dev.block_write(dev, blk, cnt, addr);
-			time_test_end();
 
 #ifdef CONFIG_BOOT_PARTITION_ACCESS
 			/* Switch back */

@@ -356,7 +356,7 @@ void start_armboot (void)
 
 #if defined(CONFIG_LCD) 
 #if defined(CONFIG_VIDEO_MX23)
-	gd->fb_base = (unsigned long)calloc(CONFIG_LCD_WIDTH * CONFIG_LCD_HEIGH, 1);
+	gd->fb_base = (unsigned long)calloc(CONFIG_LCD_WIDTH * CONFIG_LCD_HEIGH + 512, 1);	//emmc driver read is 512B alignment. 800x600=480000, not 512 alignment.
 #endif
 	/* board init may have inited fb_base */
 	if (!gd->fb_base) {
@@ -378,13 +378,6 @@ void start_armboot (void)
 	nand_init();		/* go init the NAND */
 #endif
 
-#ifdef CONFIG_VIDEO_MX23 
-	extern int load_logo(uint32_t address);
-	extern int dm100_patching_key(void);
-	if (!dm100_patching_key())
-		load_logo(gd->fb_base);
-#endif
-
 #if defined(CONFIG_CMD_ONENAND)
 	onenand_init();
 #endif
@@ -399,9 +392,9 @@ void start_armboot (void)
 	mmc_initialize (gd->bd);
 #endif
 
-#if defined(CONFIG_DM100_POWER)
-	extern void dm100_power_detect(void);
-	dm100_power_detect();
+#if defined(CONFIG_DM30_POWER)
+	extern void dm30_power_detect(void);
+	dm30_power_detect();
 #endif
 
 	/* initialize environment */
@@ -421,13 +414,27 @@ void start_armboot (void)
 
 	stdio_init ();	/* get the devices list going. */
 
+#ifdef CONFIG_VIDEO_MX23 
+	extern int load_logo(uint32_t address);
+	extern int dm30_patching_key(void);
+	extern void mpulcd_refresh_screen(int mode);
+	if (dm30_patching_key())
+		memset(gd->fb_base,0xFF, (800*600));
+	else {
+		mpulcd_clean_screenEx();	//clear screen to white color for avoid dirty screen before display logo.
+		load_logo(gd->fb_base);
+	}
+	mpulcd_refresh_screen(2);
+#endif
+
+
+
 	jumptable_init ();
 
 #if defined(CONFIG_API)
 	/* Initialize API */
 	api_init ();
 #endif
-
 	console_init_r ();	/* fully init console as a device */
 
 #if defined(CONFIG_ARCH_MISC_INIT)
@@ -500,8 +507,9 @@ extern void davinci_eth_set_mac_addr (const u_int8_t *addr);
 #endif
 
 #if defined(CONFIG_BOOT_SD_VFAT)
-	extern void dm100_boot(void);
-	dm100_boot();
+	// Upgrade uboot and application if SD card persent.
+	extern int dm30_patching(void);
+	dm30_patching();
 #endif
 
 	/* main_loop() can return to retry autoboot, if so just run it again. */

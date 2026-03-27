@@ -8,38 +8,9 @@
  * (C) 2004 Texas Instruments
  */
 
-#define DEBUG
-
 #include <common.h>
 
 #include <asm/arch/mx23.h>
-
-#ifdef DEBUG
-#include <asm/arch/timrot.h>
-
-#define TIMCTRL		TIMCTRL0
-#define TIMCOUNT	TIMCOUNT0
-
-#define READ_TIMER ((REG_RD(TIMROT_BASE + TIMCOUNT) & 0xffff0000) >> 16)
-
-#define time_test_start() 				\
-	uint32_t __t1, __t2, __t;			\
-	__t1 = READ_TIMER;
-
-#define time_test_end()					\
-	do {						\
-		__t2 = READ_TIMER;			\
-	       if (__t1 > __t2)				\
-		       __t = __t1 - __t2;		\
-	       else					\
-		       __t = __t1 + 0xffff - __t2;	\
-	       pr_info("%u ms\n", __t);			\
-	} while (0)
-#else
-#define time_test_end()
-#define time_test_start()
-#endif
-
 
 /*
  *
@@ -414,9 +385,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		if (!s || !strcmp(s, ".jffs2") || !strcmp(s, ".e") || !strcmp(s, ".i")) {
 			if (read) {
 				pr_info("[NAND read] 0x%08x Bytes: ", size);
-				time_test_start();
 				ret = nand_read_skip_bad(nand, off, &size, (u_char *)addr);
-				time_test_end();
 			} else
 				ret = nand_write_skip_bad(nand, off, &size, (u_char *)addr);
 		} else if (!strcmp(s, ".oob")) {

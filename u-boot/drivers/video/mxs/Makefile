@@ -2,7 +2,7 @@ include $(TOPDIR)/config.mk
 
 LIB	:= $(obj)libmxsvideo.a
 
-COBJS-$(CONFIG_VIDEO_MX23) += mxsfb.o lcdif.o ortus.o
+COBJS-$(CONFIG_VIDEO_MX23) += mxsfb.o lcdif.o dm30.o it8951_i80.o
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)

@@ -230,9 +230,7 @@ static int mxsfb_probe(void)
 	data->screen_size = pentry->x_res * pentry->y_res * pentry->bpp / 8;
 	data->screen_base = gd->fb_base;
 #endif
-
 	mxs_init_lcdif();
-
 	ret = pentry->init_panel(data->screen_base, data->screen_size, pentry);
 	if (ret) {
 		pr_err("cannot initialize LCD panel\n");
@@ -257,9 +255,9 @@ short console_row;
 static ushort colormap[256];
 
 vidinfo_t panel_info = {
-	.vl_col		= 801,
-	.vl_row		= 600,
-	.vl_bpix	= 3,
+	.vl_col		= CONFIG_LCD_WIDTH,
+	.vl_row		= CONFIG_LCD_HEIGH,
+	.vl_bpix	= LCD_BPP,
 	.cmap		= colormap,
 };
 
@@ -278,8 +276,6 @@ void lcd_disable(void)
 void lcd_ctrl_init(void *lcdbase)
 {
 	mxsfb_probe();
-	//lcd_base = (void *)data->screen_base;
-	lcd_line_length = 801;
 }
 
 void lcd_enable(void)

@@ -68,6 +68,8 @@ static int abortboot(int);
 
 #undef DEBUG_PARSER
 
+#define IMPROVE_EINK 1
+
 char        console_buffer[CONFIG_SYS_CBSIZE];		/* console I/O buffer	*/
 
 static char * delete_char (char *buffer, char *p, int *colp, int *np, int plen);
@@ -221,6 +223,14 @@ static __inline__ int abortboot(int bootdelay)
 	printf("Hit any key to stop autoboot: %2d ", bootdelay);
 #endif
 
+#ifdef IMPROVE_EINK
+	extern void lcd_refresh();
+	lcd_refresh();
+
+	extern void lcd_auto_refresh(ushort enable);
+	lcd_auto_refresh(1);
+#endif
+
 #if defined CONFIG_ZERO_BOOTDELAY_CHECK
 	/*
 	 * Check if key already pressed
@@ -262,6 +272,11 @@ static __inline__ int abortboot(int bootdelay)
 #ifdef CONFIG_SILENT_CONSOLE
 	if (abort)
 		gd->flags &= ~GD_FLG_SILENT;
+#endif
+
+#ifdef IMPROVE_EINK
+	extern void lcd_auto_refresh(ushort enable);
+	lcd_auto_refresh(0);
 #endif
 
 	return abort;
@@ -397,7 +412,12 @@ void main_loop (void)
 
 	debug ("### main_loop: bootcmd=\"%s\"\n", s ? s : "<UNDEFINED>");
 
+    // Boot to application.
+    extern void dm30_boot(void);
+    dm30_boot();
+    
 	if (bootdelay >= 0 && s && !abortboot (bootdelay)) {
+
 # ifdef CONFIG_AUTOBOOT_KEYED
 		int prev = disable_ctrlc(1);	/* disable Control C checking */
 # endif
@@ -723,6 +743,14 @@ static int cread_line(const char *const prompt, char *buf, unsigned int *len)
 	int rc = 0;
 	char esc_save[8];
 
+#ifdef IMPROVE_EINK
+	extern void lcd_refresh();
+	lcd_refresh();
+
+	extern void lcd_auto_refresh(ushort enable);
+	lcd_auto_refresh(1);
+#endif
+
 	while (1) {
 		rlen = 1;
 #ifdef CONFIG_BOOT_RETRY_TIME
@@ -922,6 +950,11 @@ static int cread_line(const char *const prompt, char *buf, unsigned int *len)
 	if (buf[0] && buf[0] != CREAD_HIST_CHAR)
 		cread_add_to_hist(buf);
 	hist_cur = hist_add_idx;
+
+#ifdef IMPROVE_EINK
+	extern void lcd_auto_refresh(ushort enable);
+	lcd_auto_refresh(0);
+#endif
 
 	return (rc);
 }

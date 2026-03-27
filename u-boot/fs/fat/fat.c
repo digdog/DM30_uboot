@@ -24,7 +24,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-//#define DEBUG
 
 #include <common.h>
 #include <config.h>
@@ -95,7 +94,6 @@ fat_register_device(block_dev_desc_t *dev_desc, int part_no)
 	if (!get_partition_info (dev_desc, part_no, &info)) {
 		part_offset = info.start;
 		cur_part = part_no;
-	//} else if (!strncmp((char *)&buffer[DOS_FS_TYPE_OFFSET], "FAT", 3)) {
 	} else if (buffer[0] == 0xe9 || (buffer[0] == 0xeb && buffer[2] == 0x90)) {
 		/* ok, we assume we are on a PBR only */
 		cur_part = 1;
@@ -704,7 +702,7 @@ read_bootsectandvi(boot_sector *bs, volume_info *volinfo, int *fatsize)
 	return -1;
 }
 
-extern void dm100_registe_file(const char *fname);
+extern void dm30_registe_file(const char *fname);
 
 __attribute__ ((__aligned__(__alignof__(dir_entry))))
 __u8 do_fat_read_block[MAX_CLUSTSIZE];
@@ -791,7 +789,6 @@ do_fat_read (const char *filename, void *buffer, unsigned long maxsize,
 	    return -1;
 	}
 	dentptr = (dir_entry *) do_fat_read_block;
-//	for (i = 0; i < DIRENTSPERBLOCK; i++) {
 	for (i = 0; i < DIRENTSPERCLUST; i++) {
 	    char s_name[14], l_name[256];
 
@@ -823,7 +820,7 @@ do_fat_read (const char *filename, void *buffer, unsigned long maxsize,
 				printf (" %8ld   %s%c\n",
 					(long) FAT2CPU32 (dentptr->size),
 					l_name, dirc);
-				dm100_registe_file(l_name);
+				dm30_registe_file(l_name);
 			    } else {
 				printf ("            %s%c\n", l_name, dirc);
 			    }
@@ -878,7 +875,7 @@ do_fat_read (const char *filename, void *buffer, unsigned long maxsize,
 			printf (" %8ld   %s%c\n",
 				(long) FAT2CPU32 (dentptr->size), s_name,
 				dirc);
-			dm100_registe_file(l_name);
+			dm30_registe_file(l_name);
 		    } else {
 			printf ("            %s%c\n", s_name, dirc);
 		    }
@@ -901,7 +898,6 @@ do_fat_read (const char *filename, void *buffer, unsigned long maxsize,
 
 	    goto rootdir_done;  /* We got a match */
 	}
-	//cursect++;
 	cursect += mydata->clust_size;
     }
   rootdir_done:
@@ -1008,6 +1004,6 @@ file_fat_ls(const char *dir)
 long
 file_fat_read(const char *filename, void *buffer, unsigned long maxsize)
 {
-	printf("reading %s\n",filename);
+	//printf("reading %s\n",filename);
 	return do_fat_read(filename, buffer, maxsize, LS_NO);
 }

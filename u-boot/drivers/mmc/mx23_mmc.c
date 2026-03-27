@@ -29,7 +29,7 @@
  */
 
 /* define DEBUG */
-#define DEBUG
+//#define DEBUG
 
 #include <common.h>
 #include <malloc.h>

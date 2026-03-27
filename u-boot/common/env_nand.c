@@ -57,6 +57,22 @@
 #define CONFIG_ENV_RANGE	CONFIG_ENV_SIZE
 #endif
 
+
+
+struct nand_info {
+	int status_req;
+	int large_page;
+	int auto_mode;
+	u16 col_addr;
+	u8 num_of_intlv;
+	int page_mask;
+	int hw_ecc;
+	u8 *data_buf;
+	u8 *oob_buf;
+};
+
+
+
 /* references to names in env_common.c */
 extern uchar default_environment[];
 
@@ -267,7 +283,7 @@ int readenv (size_t offset, u_char * buf)
 	size_t blocksize, len;
 
 	u_char *char_ptr;
-
+#if 0
 	blocksize = nand_info[0].erasesize;
 	len = min(blocksize, CONFIG_ENV_SIZE);
 
@@ -284,7 +300,7 @@ int readenv (size_t offset, u_char * buf)
 	}
 	if (amount_loaded != CONFIG_ENV_SIZE)
 		return 1;
-
+#endif
 	return 0;
 }
 

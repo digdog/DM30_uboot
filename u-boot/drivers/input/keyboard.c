@@ -93,8 +93,8 @@ static int kbd_getc(void)
 	ps2ser_check();
 #endif
 #if defined(CONFIG_MXS_KPD)
-	extern void dm100_kbd_check(void);
-	dm100_kbd_check();
+	extern void dm30_kbd_check(void);
+	dm30_kbd_check();
 #endif
 	;}
 	if((out_pointer+1)==KBD_BUFFER_LEN)

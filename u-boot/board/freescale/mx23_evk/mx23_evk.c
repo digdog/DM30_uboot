@@ -45,11 +45,12 @@ DECLARE_GLOBAL_DATA_PTR;
 #define mdelay(t)	udelay(t * 1000)
 
 static struct pin_desc key_pins_desc[] = {
-	{ DM100_KEY_LSHIFT,  PIN_GPIO, PAD_4MA, PAD_3V3, 1 },
-	{ DM100_KEY_CTRL,    PIN_GPIO, PAD_4MA, PAD_3V3, 1 },
-	{ DM100_KEY_ALT,     PIN_GPIO, PAD_4MA, PAD_3V3, 1 },
-	{ DM100_KEY_RSHIFT,  PIN_GPIO, PAD_4MA, PAD_3V3, 1 },
-	{ DM100_KEY_BATDOOR, PIN_GPIO, PAD_4MA, PAD_3V3, 1 },
+	{ DM30_KEY_LSHIFT,  PIN_GPIO, PAD_4MA, PAD_3V3, 1 },
+	{ DM30_KEY_CTRL,    PIN_GPIO, PAD_4MA, PAD_3V3, 1 },
+	{ DM30_KEY_ALT,     PIN_GPIO, PAD_4MA, PAD_3V3, 1 },
+	{ DM30_KEY_RSHIFT,  PIN_GPIO, PAD_4MA, PAD_3V3, 1 },
+	{ DM30_KEY_BATDOOR, PIN_GPIO, PAD_4MA, PAD_3V3, 1 },
+	{ DM30_KEY_RCTRL,   PIN_GPIO, PAD_4MA, PAD_3V3, 1 },	//add by cyliang@20171109
 };
 
 static struct pin_group key_pins = {
@@ -57,14 +58,15 @@ static struct pin_group key_pins = {
 	.nr_pins = ARRAY_SIZE(key_pins_desc),
 };
 
-static void dm100_key_init(void)
+static void dm30_key_init(void)
 {
 	pin_set_group(&key_pins);
-	pin_gpio_direction(DM100_KEY_LSHIFT, 0);
-	pin_gpio_direction(DM100_KEY_CTRL, 0);
-	pin_gpio_direction(DM100_KEY_ALT, 0);
-	pin_gpio_direction(DM100_KEY_RSHIFT, 0);
-	pin_gpio_direction(DM100_KEY_BATDOOR, 0);
+	pin_gpio_direction(DM30_KEY_LSHIFT, 0);
+	pin_gpio_direction(DM30_KEY_CTRL, 0);
+	pin_gpio_direction(DM30_KEY_ALT, 0);
+	pin_gpio_direction(DM30_KEY_RSHIFT, 0);
+	pin_gpio_direction(DM30_KEY_BATDOOR, 0);
+	pin_gpio_direction(DM30_KEY_RCTRL, 0);		//add by cyliang@20171109
 }
 
 /* MMC pins */
@@ -103,6 +105,61 @@ void ssp_mmc_board_init(void)
 	//pin_set_type(MMC0_POWER, PIN_GPIO);
 	pin_gpio_direction(MMC0_POWER, 1);
 	pin_gpio_set(MMC0_POWER, 1);
+
+	/* Wait 10 ms for card ramping up */
+	mdelay(50);
+}
+
+/* EMMC pins */
+
+#define EMMC_D0		PINID_GPMI_D00
+#define EMMC_D1		PINID_GPMI_D01
+#define EMMC_D2		PINID_GPMI_D02
+#define EMMC_D3		PINID_GPMI_D03
+#define EMMC_D4		PINID_GPMI_D04
+#define EMMC_D5		PINID_GPMI_D05
+#define EMMC_D6		PINID_GPMI_D06
+#define EMMC_D7		PINID_GPMI_D07
+#define EMMC_CMD 	PINID_GPMI_RDY1
+#define EMMC_SCK 	PINID_GPMI_WRN
+#define EMMC_RSTN	PINID_GPMI_CE0N
+
+
+static struct pin_desc emmc_pins_desc[] = {
+	{ EMMC_D0, PIN_FUN3, PAD_8MA, PAD_3V3, 1 },
+	{ EMMC_D0, PIN_FUN3, PAD_8MA, PAD_3V3, 1 },
+	{ EMMC_D0, PIN_FUN3, PAD_8MA, PAD_3V3, 1 },
+	{ EMMC_D3, PIN_FUN3, PAD_8MA, PAD_3V3, 1 },
+	{ EMMC_D4, PIN_FUN3, PAD_8MA, PAD_3V3, 1 },
+	{ EMMC_D5, PIN_FUN3, PAD_8MA, PAD_3V3, 1 },
+	{ EMMC_D6, PIN_FUN3, PAD_8MA, PAD_3V3, 1 },
+	{ EMMC_D7, PIN_FUN3, PAD_8MA, PAD_3V3, 1 },
+
+	{ EMMC_CMD,   PIN_FUN3, PAD_8MA, PAD_3V3, 1 },
+	{ EMMC_SCK,   PIN_FUN3, PAD_8MA, PAD_3V3, 0 }, 
+	{ EMMC_RSTN,        PIN_GPIO, PAD_8MA, PAD_3V3, 1 }, 
+};
+
+static struct pin_group emmc_pins = {
+	.pins		= emmc_pins_desc,
+	.nr_pins	= ARRAY_SIZE(emmc_pins_desc)
+};
+
+u32 ssp_emmc_is_wp(void)
+{
+	return 0;
+}
+
+void ssp_emmc_board_init(void)
+{
+	/* Set up EMMC pins */
+	pin_set_group(&emmc_pins);
+
+	/* Reset EMMC, output */
+	pin_gpio_direction(EMMC_RSTN, 1);
+	pin_gpio_set(EMMC_RSTN, 0);
+	mdelay(50);
+	pin_gpio_set(EMMC_RSTN, 1);
 
 	/* Wait 10 ms for card ramping up */
 	mdelay(50);
@@ -222,7 +279,7 @@ int board_init(void)
 	gd->bd->bi_boot_params = LINUX_BOOT_PARAM_ADDR;
 
 #if 1
-	dm100_key_init();
+	dm30_key_init();
 
 	/* enable IOCLK to run at the PLL frequency */
 	imx_set_ioclk(480000000);

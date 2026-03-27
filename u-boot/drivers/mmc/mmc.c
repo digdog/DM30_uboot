@@ -39,6 +39,21 @@
 #include <div64.h>
 #include <fsl_esdhc.h>
 
+#define UNSTUFF_BITS(resp,start,size)					\
+	({								\
+		const int __size = size;				\
+		const u32 __mask = (__size < 32 ? 1 << __size : 0) - 1;	\
+		const int __off = 3 - ((start) / 32);			\
+		const int __shft = (start) & 31;			\
+		u32 __res;						\
+									\
+		__res = resp[__off] >> __shft;				\
+		if (__size + __shft > 32)				\
+			__res |= resp[__off-1] << ((32 - __shft) % 32);	\
+		__res & __mask;						\
+	})
+
+
 /*
  * 每次最多传输0xffff(65535)
  * 32 * 512 = 16K = 0x4000
@@ -240,13 +255,12 @@ static ulong mmc_bread(int dev_num, ulong start, lbaint_t blkcnt, void *dst)
 
 	blklen = mmc->read_bl_len;
 
-#if 0
 	err = mmc_set_blocklen(mmc, blklen);
 	if (err) {
 		puts("set read bl len failed\n\r");
 		return err;
 	}
-#endif
+
 	do {
 		cmd.cmdidx = (blk_left > 1) ? MMC_CMD_READ_MULTIPLE_BLOCK : MMC_CMD_READ_SINGLE_BLOCK;
 		cmd.cmdarg = mmc->high_capacity ? (start + blk_offset) : ((start + blk_offset) * blklen);
@@ -440,7 +454,8 @@ int mmc_change_freq(struct mmc *mmc)
 	if (mmc->version < MMC_VERSION_4)
 		return 0;
 
-	mmc->card_caps |= MMC_MODE_4BIT;
+	//mmc->card_caps |= MMC_MODE_4BIT;
+	mmc->card_caps |= MMC_MODE_4BIT | MMC_MODE_8BIT;
 
 	ext_csd = (char *)malloc(512);
 
@@ -895,7 +910,8 @@ int mmc_startup(struct mmc *mmc)
 
 	if (mmc->version == MMC_VERSION_UNKNOWN) {
 		int version = (cmd.response[0] >> 26) & 0xf;
-
+		
+		debug("Version: %u\n", version);
 		switch (version) {
 			case 0:
 				mmc->version = MMC_VERSION_1_2;
@@ -938,6 +954,35 @@ int mmc_startup(struct mmc *mmc)
 	debug("Max. block length are: Write=%u, Read=%u Bytes\n",
 		mmc->read_bl_len, mmc->write_bl_len);
 
+	debug("CSD structure: %d, %d\n", (int)((cmd.response[0] >> 30) & 0x3), mmc->high_capacity);
+
+#if 1
+	cmult = UNSTUFF_BITS(cmd.response, 47, 3);
+	csize = UNSTUFF_BITS(cmd.response, 62, 12);
+	debug("C_SIZE=0X%08X, C_SIZE_MULT=0X%08X\n", (u32)csize, (u32)cmult);
+
+
+	mmc->capacity = (1 + csize) << (cmult + 2);
+	if (mmc->capacity >= 0x200000) {
+		// High capacity cards should have this "magic" size 0x200000 stored in their CSD.
+		// The size should see (((ESCD[SEC_COUNT] * 512) / 1024 / 1024 / 1024) + 1) G.
+		// We fixed it to 8GB in the project for simple.
+		mmc->capacity = 8 * 1024;
+		mmc->capacity <<= 20;
+	}
+	else {
+		/* extra capacitiy */
+		if (mmc->high_capacity) {
+			csize = (mmc->csd[1] & 0x3f) << 16 | (mmc->csd[2] & 0xffff0000) >> 16;
+			cmult = 8;
+		} else {
+			csize = (mmc->csd[1] & 0x3ff) << 2 | (mmc->csd[2] & 0xc0000000) >> 30;
+			cmult = (mmc->csd[2] & 0x00038000) >> 15;
+		}
+		mmc->capacity = (csize + 1) << (cmult + 2);
+		mmc->capacity *= mmc->read_bl_len;
+	}
+#else
 	/* extra capacitiy */
 	if (mmc->high_capacity) {
 		csize = (mmc->csd[1] & 0x3f) << 16 | (mmc->csd[2] & 0xffff0000) >> 16;
@@ -948,7 +993,8 @@ int mmc_startup(struct mmc *mmc)
 	}
 	mmc->capacity = (csize + 1) << (cmult + 2);
 	mmc->capacity *= mmc->read_bl_len;
-	debug("Capacity: %u MiB\n", (unsigned)mmc->capacity >> 20);
+#endif
+	debug("Capacity: %u MiB\n", (unsigned)(mmc->capacity >> 20));
 
 	if (mmc->read_bl_len > 512) {
 		mmc->read_bl_len = 512;
@@ -1014,17 +1060,7 @@ int mmc_startup(struct mmc *mmc)
 		else
 			mmc_set_clock(mmc, 25000000);
 	} else {
-		if (mmc->card_caps & MMC_MODE_4BIT) {
-			/* Set the card to use 4 bit*/
-			err = mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL,
-					EXT_CSD_BUS_WIDTH,
-					EXT_CSD_BUS_WIDTH_4);
-
-			if (err)
-				return err;
-
-			mmc_set_bus_width(mmc, 4);
-		} else if (mmc->card_caps & MMC_MODE_8BIT) {
+		if (mmc->card_caps & MMC_MODE_8BIT) {
 			/* Set the card to use 8 bit*/
 			err = mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL,
 					EXT_CSD_BUS_WIDTH,
@@ -1034,15 +1070,29 @@ int mmc_startup(struct mmc *mmc)
 				return err;
 
 			mmc_set_bus_width(mmc, 8);
+		}		
+		else if (mmc->card_caps & MMC_MODE_4BIT) {
+			/* Set the card to use 4 bit*/
+			err = mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL,
+					EXT_CSD_BUS_WIDTH,
+					EXT_CSD_BUS_WIDTH_4);
+
+			if (err)
+				return err;
+
+			mmc_set_bus_width(mmc, 4);
 		}
 
 		if (mmc->card_caps & MMC_MODE_HS) {
-			if (mmc->card_caps & MMC_MODE_HS_52MHz)
+			if (mmc->card_caps & MMC_MODE_HS_52MHz) {
 				mmc_set_clock(mmc, 52000000);
-			else
+			}
+			else {
 				mmc_set_clock(mmc, 26000000);
-		} else
+			}
+		} else {
 			mmc_set_clock(mmc, 20000000);
+		}
 
 #ifdef CONFIG_BOOT_PARTITION_ACCESS
 		mmc_get_cur_boot_partition(mmc);
@@ -1220,8 +1270,13 @@ int mmc_initialize(bd_t *bis)
 	cur_dev_num = 0;
 
 #ifdef CONFIG_MMC_MX23_DMA
+	// SD card on SSP1.
 	extern int mxs_mmc_probe(void);
 	mxs_mmc_probe();
+
+	// EMMC flash on SSP2.
+	extern int imx_ssp_mmc_initialize(bd_t *bis);
+	imx_ssp_mmc_initialize(bis);
 #else
 	if (board_mmc_init(bis) < 0)
 		cpu_mmc_init(bis);

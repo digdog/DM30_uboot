@@ -31,7 +31,7 @@ COBJS-y += keyboard.o pc_keyb.o
 COBJS-$(CONFIG_PS2MULT) += ps2mult.o ps2ser.o
 endif
 COBJS-${CONFIG_MXC_KPD} += mxc_keyb.o
-COBJS-${CONFIG_MXS_KPD} += keyboard.o dm100_keyb.o
+COBJS-${CONFIG_MXS_KPD} += keyboard.o dm30_keyb.o
 #tx35894xbg_reg.o kb_iic.o
 
 COBJS	:= $(COBJS-y)

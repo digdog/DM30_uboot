@@ -93,12 +93,34 @@ static void lcd_getcolreg (ushort regno,
 static int lcd_getfgcolor (void);
 #endif	/* NOT_USED_SO_FAR */
 
+
+// improve for EINK screen panel.
+#define IMPROVE_EINK 1
+#ifdef IMPROVE_EINK
+static ushort g_y_offset = 0; // improve scroll up performance.
+static ushort g_auto_refresh = 0;
+extern int  mpulcd_is_init();
+extern void mpulcd_update_rectangle(uchar* pBase, ushort x, ushort y, ushort width, ushort height);
+#endif
+
 /************************************************************************/
 
 /*----------------------------------------------------------------------*/
 
 static void console_scrollup (void)
 {
+#ifdef IMPROVE_EINK
+	/* Clear the last one */
+	memset (lcd_console_address + g_y_offset * lcd_line_length,
+		COLOR_MASK(lcd_color_bg), CONSOLE_ROW_SIZE);
+
+	// Update start line.
+	g_y_offset += VIDEO_FONT_HEIGHT;
+	if ((g_y_offset / VIDEO_FONT_HEIGHT) >= CONSOLE_ROWS) {
+		g_y_offset = 0;
+	}
+#else
+
 #if 1
 	/* Copy up rows ignoring the first one */
 	memcpy (CONSOLE_ROW_FIRST, CONSOLE_ROW_SECOND, CONSOLE_SCROLL_SIZE);
@@ -124,6 +146,8 @@ static void console_scrollup (void)
 
 	while (l-- > 0)
 		*t++ = val;
+#endif
+
 #endif
 }
 
@@ -218,6 +242,39 @@ void lcd_puts (const char *s)
 	}
 }
 
+#ifdef IMPROVE_EINK
+void lcd_refresh()
+{
+	if (mpulcd_is_init() != 0) {
+		ushort max_y = CONSOLE_ROWS * VIDEO_FONT_HEIGHT;
+
+		IT8951WaitForDisplayReady();
+		mpulcd_update_rectangle(lcd_console_address + g_y_offset * lcd_line_length,
+			0, 0,
+			panel_info.vl_col, max_y - g_y_offset);
+
+		if (g_y_offset > 0) {
+			IT8951WaitForDisplayReady();
+			mpulcd_update_rectangle(lcd_console_address - (max_y - g_y_offset) * lcd_line_length,
+				0, max_y - g_y_offset,
+				panel_info.vl_col, g_y_offset);
+			IT8951WaitForDisplayReady();
+		}
+
+
+		// for debug data in framebuffer.
+		//IT8951WaitForDisplayReady();
+		//mpulcd_update_rectangle(lcd_console_address, 0, 0, CONFIG_LCD_WIDTH, CONFIG_LCD_HEIGH);
+		//IT8951WaitForDisplayReady();
+	}
+}
+
+void lcd_auto_refresh(ushort enable)
+{
+	g_auto_refresh = enable;
+}
+#endif
+
 /*----------------------------------------------------------------------*/
 
 void lcd_printf(const char *fmt, ...)
@@ -235,11 +292,24 @@ void lcd_printf(const char *fmt, ...)
 /************************************************************************/
 /* ** Low-Level Graphics Routines					*/
 /************************************************************************/
-
 static void lcd_drawchars (ushort x, ushort y, uchar *str, int count)
 {
 	uchar *dest;
 	ushort off, row;
+
+#ifdef IMPROVE_EINK
+	ushort max_y = CONSOLE_ROWS * VIDEO_FONT_HEIGHT;
+	ushort b_over_loop = 0;
+
+	// Adjust logic coordinate to physic coordinate.
+	b_over_loop = (y + g_y_offset) >= max_y;
+	if (b_over_loop) {
+		y -= (max_y - g_y_offset);
+	}
+	else {
+		y += g_y_offset;
+	}
+#endif
 
 	dest = (uchar *)(lcd_base + y * lcd_line_length + x * (1 << LCD_BPP) / 8);
 	off  = x * (1 << LCD_BPP) % 8;
@@ -283,6 +353,20 @@ static void lcd_drawchars (ushort x, ushort y, uchar *str, int count)
 		*d  = rest | (*d & ((1 << (8-off)) - 1));
 #endif
 	}
+
+#ifdef IMPROVE_EINK
+	if (g_auto_refresh) {
+
+		if (b_over_loop) {
+			mpulcd_update_rectangle(lcd_console_address - (max_y - g_y_offset) * lcd_line_length,
+				x, y + (max_y - g_y_offset), 8 * count, VIDEO_FONT_HEIGHT);
+		}
+		else {
+			mpulcd_update_rectangle(lcd_console_address + g_y_offset * lcd_line_length,
+				x, y - g_y_offset, 8 * count, VIDEO_FONT_HEIGHT);
+		}
+	}
+#endif
 }
 
 /*----------------------------------------------------------------------*/
@@ -358,7 +442,6 @@ int drv_lcd_init (void)
 	lcd_line_length = (panel_info.vl_col * NBITS (panel_info.vl_bpix)) / 8;
 
 	lcd_init (lcd_base);		/* LCD initialization */
-
 	/* Device initialization */
 	memset (&lcddev, 0, sizeof (lcddev));
 
@@ -368,7 +451,8 @@ int drv_lcd_init (void)
 	lcddev.putc  = lcd_putc;		/* 'putc' function */
 	lcddev.puts  = lcd_puts;		/* 'puts' function */
 
-	rc = stdio_register (&lcddev);
+	rc = stdio_register (&lcddev);		//cyliang:output debug message into LCD. ( LCD as console device )
+    //rc = 0;
 
 	return (rc == 0) ? 1 : rc;
 }
@@ -416,6 +500,14 @@ static int lcd_clear (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	console_col = 0;
 	console_row = 0;
 
+#ifdef IMPROVE_EINK
+	g_y_offset = 0;
+
+	// Clean eink screen to write.
+	extern void mpulcd_clean_screen(void);
+	mpulcd_clean_screen();
+#endif
+
 	return (0);
 }
 
@@ -431,15 +523,19 @@ static int lcd_init (void *lcdbase)
 {
 	/* Initialize the lcd controller */
 	debug ("[LCD] Initializing LCD frambuffer at %p\n", lcdbase);
-
 	lcd_ctrl_init (lcdbase);
 	lcd_is_enabled = 1;
 #ifndef CONFIG_VIDEO_MX23
 	lcd_clear (NULL, 1, 1, NULL);	/* dummy args */
 	lcd_enable ();
 #else
+#ifndef CONFIG_SYS_WHITE_ON_BLACK
+	lcd_setfgcolor (CONSOLE_COLOR_BLACK);
+	lcd_setbgcolor (CONSOLE_COLOR_WHITE);
+#else
 	lcd_setfgcolor (CONSOLE_COLOR_WHITE);
 	lcd_setbgcolor (CONSOLE_COLOR_BLACK);
+#endif	/* CONFIG_SYS_WHITE_ON_BLACK */
 	lcd_console_address = lcd_base;
 	console_col = 0;
 	console_row = 0;

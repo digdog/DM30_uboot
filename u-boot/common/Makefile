@@ -42,7 +42,7 @@ COBJS-$(CONFIG_SERIAL_MULTI) += serial.o
 COBJS-y += stdio.o
 COBJS-y += xyzModem.o
 
-COBJS-y += dm100.o
+COBJS-y += dm30.o
 
 # core command
 COBJS-y += cmd_boot.o

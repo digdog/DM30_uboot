@@ -22,10 +22,10 @@
 #
 
 VERSION = 0
-PATCHLEVEL = 17
+PATCHLEVEL = 30
 SUBLEVEL =
 EXTRAVERSION =
-DM100_BOOTLOADER_VERSION := V$(VERSION).$(PATCHLEVEL) ($(shell date +%Y-%m-%d))
+DM30_BOOTLOADER_VERSION := V$(VERSION).$(PATCHLEVEL) ($(shell date +%Y-%m-%d))
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -390,10 +390,10 @@ $(TIMESTAMP_FILE):
 #@date +'#define U_BOOT_DATE "%b %d %C%y"' > $@
 		@date +'#define U_BOOT_DATE "%Y-%m-%d"' > $@
 		@date +'#define U_BOOT_TIME "%T"' >> $@
-		@echo '#define DM100_UBOOT_VERSION $(VERSION)' >> $@
-		@echo '#define DM100_UBOOT_PATCHLEVEL $(PATCHLEVEL)' >> $@
-		@date +'#define DM100_BOOT_VERSION "DM100 Bootloader : $(DM100_BOOTLOADER_VERSION)"' >> $@
-		@date +'#define DM100_BOOT_VERSION "$(DM100_BOOTLOADER_VERSION)"' > DM100_BootLoader_Version
+		@echo '#define DM30_UBOOT_VERSION $(VERSION)' >> $@
+		@echo '#define DM30_UBOOT_PATCHLEVEL $(PATCHLEVEL)' >> $@
+		@date +'#define DM30_BOOT_VERSION "DM30 Bootloader : $(DM30_BOOTLOADER_VERSION)"' >> $@
+		@date +'#define DM30_BOOT_VERSION "$(DM30_BOOTLOADER_VERSION)"' > DM30_BootLoader_Version
 
 gdbtools:
 		$(MAKE) -C tools/gdb all || exit 1
@@ -3218,11 +3218,11 @@ apollon_config		: unconfig
 mx23_evk_config : unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs mx23_evk freescale mx23
 
-# For DM100 - smmei
+# For DM30 - smmei
 #MD5 := $(shell git log | head -1 | awk '{print $$2}')
 #MD5 = `git log | head -1 | awk '{print $2}'`
 #echo "#define U_BOOT_GIT_VERSION \"$(MD5)\"" > $(obj)include/u_boot_git_version.h
-dm100_config: unconfig
+dm30_config: unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs mx23_evk freescale mx23
 
 mx25_3stack_mfg_config \
@@ -3741,7 +3741,7 @@ clean:
 		\( -name 'core' -o -name '*.bak' -o -name '*~' \
 		-o -name '*.o'	-o -name '*.a' -o -name '*.exe'	\) -print \
 		| xargs rm -f
-	@rm -f DM100_BootLoader_Version
+	@rm -f DM30_BootLoader_Version
 
 clobber:	clean
 	@find $(OBJTREE) -type f \( -name .depend \
