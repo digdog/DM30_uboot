@@ -18,7 +18,7 @@ STRIP	= $(CROSS_COMPILE)strip
 OBJCOPY	= $(CROSS_COMPILE)objcopy
 OBJDUMP	= $(CROSS_COMPILE)o
 
-CFLAGS 	= -Wall -ffunction-sections $(INCLUDEDIRS) -I./ -O -DSTMP378x
+CFLAGS 	= -Wall -ffunction-sections $(INCLUDEDIRS) -I./ -O -DSTMP378x -std=gnu11 -ffreestanding -fno-builtin -Wno-implicit-function-declaration -Wno-unknown-pragmas -Wno-unused-variable -Wno-builtin-declaration-mismatch
 
 lib_objs := src/hw_power.o src/hw_power_battery.o src/hw_power_init.o \
 	src/hw_power_interrupts.o src/hw_power_registers.o \
@@ -47,7 +47,7 @@ all: lib$(LIBNAME)
 .PHONY: build build_prep clean
 
 lib$(LIBNAME): $(lib_objs)
-	ar rs lib$(LIBNAME).a $(lib_objs)
+	$(CROSS_COMPILE)ar rs lib$(LIBNAME).a $(lib_objs)
 #	ranlib lib$(LIBNAME).a
 
 clean:

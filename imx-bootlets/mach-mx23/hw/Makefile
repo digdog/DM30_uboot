@@ -22,7 +22,7 @@ lib$(LIBNAME):
 	$(MAKE) -C icoll
 	$(MAKE) -C digctl
 	$(MAKE) -C core
-	ar rs lib$(LIBNAME).a $(lib_objs)
+	$(CROSS_COMPILE)ar rs lib$(LIBNAME).a $(lib_objs)
 #	ranlib lib$(LIBNAME).a
 
 clean:

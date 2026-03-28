@@ -278,12 +278,12 @@ int saveenv(void)
 
 int readenv (size_t offset, u_char * buf)
 {
+#if 0
 	size_t end = offset + CONFIG_ENV_RANGE;
 	size_t amount_loaded = 0;
 	size_t blocksize, len;
 
 	u_char *char_ptr;
-#if 0
 	blocksize = nand_info[0].erasesize;
 	len = min(blocksize, CONFIG_ENV_SIZE);
 

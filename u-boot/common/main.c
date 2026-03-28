@@ -224,7 +224,7 @@ static __inline__ int abortboot(int bootdelay)
 #endif
 
 #ifdef IMPROVE_EINK
-	extern void lcd_refresh();
+	extern void lcd_refresh(void);
 	lcd_refresh();
 
 	extern void lcd_auto_refresh(ushort enable);
@@ -735,7 +735,6 @@ static int cread_line(const char *const prompt, char *buf, unsigned int *len)
 {
 	unsigned long num = 0;
 	unsigned long eol_num = 0;
-	unsigned long rlen;
 	unsigned long wlen;
 	char ichar;
 	int insert = 1;
@@ -744,7 +743,7 @@ static int cread_line(const char *const prompt, char *buf, unsigned int *len)
 	char esc_save[8];
 
 #ifdef IMPROVE_EINK
-	extern void lcd_refresh();
+	extern void lcd_refresh(void);
 	lcd_refresh();
 
 	extern void lcd_auto_refresh(ushort enable);
@@ -752,7 +751,6 @@ static int cread_line(const char *const prompt, char *buf, unsigned int *len)
 #endif
 
 	while (1) {
-		rlen = 1;
 #ifdef CONFIG_BOOT_RETRY_TIME
 		while (!tstc()) {	/* while no incoming data */
 			if (retry_time >= 0 && get_ticks() > endtime)

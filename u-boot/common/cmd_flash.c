@@ -495,6 +495,7 @@ int do_protect (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		cmd_usage(cmdtp);
 		return 1;
 	}
+	(void)p;
 
 #ifdef CONFIG_HAS_DATAFLASH
 	if ((strcmp(argv[2], "all") != 0) && (strcmp(argv[2], "bank") != 0)) {

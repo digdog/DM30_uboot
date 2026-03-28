@@ -125,24 +125,24 @@ void *sbrk (ptrdiff_t increment)
  ************************************************************************
  * May be supplied by boards if desired
  */
-void inline __coloured_LED_init (void) {}
-void inline coloured_LED_init (void) __attribute__((weak, alias("__coloured_LED_init")));
-void inline __red_LED_on (void) {}
-void inline red_LED_on (void) __attribute__((weak, alias("__red_LED_on")));
-void inline __red_LED_off(void) {}
-void inline red_LED_off(void)	     __attribute__((weak, alias("__red_LED_off")));
-void inline __green_LED_on(void) {}
-void inline green_LED_on(void) __attribute__((weak, alias("__green_LED_on")));
-void inline __green_LED_off(void) {}
-void inline green_LED_off(void)__attribute__((weak, alias("__green_LED_off")));
-void inline __yellow_LED_on(void) {}
-void inline yellow_LED_on(void)__attribute__((weak, alias("__yellow_LED_on")));
-void inline __yellow_LED_off(void) {}
-void inline yellow_LED_off(void)__attribute__((weak, alias("__yellow_LED_off")));
-void inline __blue_LED_on(void) {}
-void inline blue_LED_on(void)__attribute__((weak, alias("__blue_LED_on")));
-void inline __blue_LED_off(void) {}
-void inline blue_LED_off(void)__attribute__((weak, alias("__blue_LED_off")));
+void __coloured_LED_init (void) {}
+void coloured_LED_init (void) __attribute__((weak, alias("__coloured_LED_init")));
+void __red_LED_on (void) {}
+void red_LED_on (void) __attribute__((weak, alias("__red_LED_on")));
+void __red_LED_off(void) {}
+void red_LED_off(void)	     __attribute__((weak, alias("__red_LED_off")));
+void __green_LED_on(void) {}
+void green_LED_on(void) __attribute__((weak, alias("__green_LED_on")));
+void __green_LED_off(void) {}
+void green_LED_off(void)__attribute__((weak, alias("__green_LED_off")));
+void __yellow_LED_on(void) {}
+void yellow_LED_on(void)__attribute__((weak, alias("__yellow_LED_on")));
+void __yellow_LED_off(void) {}
+void yellow_LED_off(void)__attribute__((weak, alias("__yellow_LED_off")));
+void __blue_LED_on(void) {}
+void blue_LED_on(void)__attribute__((weak, alias("__blue_LED_on")));
+void __blue_LED_off(void) {}
+void blue_LED_off(void)__attribute__((weak, alias("__blue_LED_off")));
 
 /************************************************************************
  * Init Utilities							*
@@ -414,12 +414,13 @@ void start_armboot (void)
 
 	stdio_init ();	/* get the devices list going. */
 
-#ifdef CONFIG_VIDEO_MX23 
+#ifdef CONFIG_VIDEO_MX23
 	extern int load_logo(uint32_t address);
 	extern int dm30_patching_key(void);
 	extern void mpulcd_refresh_screen(int mode);
+	extern void mpulcd_clean_screenEx(void);
 	if (dm30_patching_key())
-		memset(gd->fb_base,0xFF, (800*600));
+		memset((void *)gd->fb_base,0xFF, (800*600));
 	else {
 		mpulcd_clean_screenEx();	//clear screen to white color for avoid dirty screen before display logo.
 		load_logo(gd->fb_base);

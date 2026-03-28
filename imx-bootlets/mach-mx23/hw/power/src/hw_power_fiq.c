@@ -140,8 +140,8 @@ bool hw_power_FiqHandler(void)
 
 
        	    if(
-    		    ( !(u32BoStsBits & BM_POWER_STS_VDDD_BO)  ) ==
-    		    ( !(u32BoStsBits & BM_POWER_STS_VDDA_BO)  ) ==
+    		    (( !(u32BoStsBits & BM_POWER_STS_VDDD_BO)  ) ==
+    		    ( !(u32BoStsBits & BM_POWER_STS_VDDA_BO)  )) ==
     		    ( !(u32BoStsBits & BM_POWER_STS_VDDIO_BO) )
     		 )
 

@@ -20,7 +20,9 @@ OBJDUMP	= $(CROSS_COMPILE)objdump
 
 MEM_TYPE ?= MEM_DDR1
 
-CFLAGS 	= -g -Wall -I$(INCLUDEDIR) -I$(INCLUDEDIR)/mach -I./ -O -D$(MEM_TYPE)
+CFLAGS 	= -g -Wall -I$(INCLUDEDIR) -I$(INCLUDEDIR)/mach -I./ -O -D$(MEM_TYPE) \
+	  -std=gnu11 -ffreestanding -fno-builtin \
+	  -Wno-implicit-function-declaration -Wno-builtin-declaration-mismatch
 LDFLAGS = -static -nostdlib -T $(BOOT_LAYOUT)
 
 # Generic code

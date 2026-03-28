@@ -62,6 +62,12 @@ inline void LCDWaitForReady(void);
 void LCDWriteCmdCode(TWord cmd);
 void LCDWriteData(TWord data);
 void LCDWriteNData(TWord* pwBuf, TDWord wordCnt);
+
+// Forward declarations for functions defined later in this file
+void mpulcd_refresh_screen(int mode);
+
+// Forward declaration for IT8951 function not in header
+void IT8951DisplayAreaEx(TWord usX, TWord usY, TWord usW, TWord usH, TWord usDpyMode, TWord value);
 TWord LCDReadData(void);
 void LCDSendCmdArg(TWord cmdCode, TWord* pArg, TWord numArg);
 
@@ -570,7 +576,7 @@ void LCDSendCmdArg(TWord cmdCode, TWord* pArg, TWord numArg)
 
 
 ///////////////////////////////////////////////////////////////////////////
-int  mpulcd_is_init()
+int  mpulcd_is_init(void)
 {
 	return g_it8951_init;
 }
@@ -743,7 +749,7 @@ void mpulcd_refresh_screen(int mode)
 }
 
 
-static void mpulcd_start_refresh(void)
+static void __attribute__((unused)) mpulcd_start_refresh(void)
 {
 }
 

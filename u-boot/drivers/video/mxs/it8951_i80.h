@@ -139,9 +139,9 @@ void IT8951LoadImgAreaStart(IT8951LdImgInfo *pstLdImgInfo, IT8951AreaImgInfo *ps
 void IT8951LoadImgEnd(void);
 void IT8951PowerOn(void);
 void IT8951PowerOff(void);
-TWord IT8951GetTemperature();
+TWord IT8951GetTemperature(void);
 void IT8951SetTemperature(TWord temper);
-TWord IT8951GetVCOM();
+TWord IT8951GetVCOM(void);
 void IT8951SetVCOM(TWord vcom);
 void IT8951GetSystemInfo(void *pBuf);
 void IT8951SetImgBufBaseAddr(TDWord ulImgBufAddr);

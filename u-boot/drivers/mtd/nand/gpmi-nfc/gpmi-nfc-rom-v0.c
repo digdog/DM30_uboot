@@ -122,6 +122,7 @@ static int check_transcription_stamp(struct gpmi_nfc_data *this)
 
 		page = stride * rom_geo->stride_size_in_pages;
 		byte = page   * physical->page_data_size_in_bytes;
+		(void)byte;
 
 		pr_info("  Looking for a fingerprint in page 0x%x\n", page);
 
@@ -254,6 +255,7 @@ static int write_transcription_stamp(struct gpmi_nfc_data *this)
 
 		page = stride * rom_geo->stride_size_in_pages;
 		byte = page   * physical->page_data_size_in_bytes;
+		(void)byte;
 
 		/* Write the first page of the current stride. */
 

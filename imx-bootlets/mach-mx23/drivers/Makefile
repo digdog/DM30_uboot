@@ -19,7 +19,7 @@ lib_objs = power/libddi_power.a
 
 lib$(LIBNAME):
 	$(MAKE) -C power
-	ar rs lib$(LIBNAME).a $(lib_objs)
+	$(CROSS_COMPILE)ar rs lib$(LIBNAME).a $(lib_objs)
 #	ranlib lib$(LIBNAME).a
 
 clean:

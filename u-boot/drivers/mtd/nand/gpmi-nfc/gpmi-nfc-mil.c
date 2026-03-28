@@ -236,6 +236,7 @@ static int mil_ecc_read_page(struct mtd_info *mtd, struct nand_chip *nand, uint8
 	auxiliary_phys = mil->auxiliary_phys;
 	payload_virt = (void *)buf;
 	payload_phys = (dma_addr_t)buf;
+	(void)payload_virt;
 
 	nfc->clear_bch(this);
 
@@ -321,6 +322,8 @@ static void mil_ecc_write_page(struct mtd_info *mtd, struct nand_chip *nand, con
 	payload_virt = (void *)buf;
 	auxiliary_phys = (dma_addr_t)nand->oob_poi;
 	auxiliary_virt = (void *)nand->oob_poi;
+	(void)payload_virt;
+	(void)auxiliary_virt;
 
 	/* Ask the NFC. */
 	error = nfc->send_page(this, mil->current_chip, payload_phys, auxiliary_phys);
@@ -622,6 +625,10 @@ static int mil_set_physical_geometry(struct gpmi_nfc_data  *this)
 	chip_size_in_pages   = physical->chip_size_in_bytes >> (fls(physical->page_data_size_in_bytes) - 1);
 	chip_size_in_blocks  = physical->chip_size_in_bytes >> (fls(physical->block_size_in_bytes) - 1);
 	medium_size_in_bytes = physical->chip_size_in_bytes * physical->chip_count;
+	(void)block_size_in_pages;
+	(void)chip_size_in_pages;
+	(void)chip_size_in_blocks;
+	(void)medium_size_in_bytes;
 
 	/* Report. */
 #if defined(DETAILED_INFO)

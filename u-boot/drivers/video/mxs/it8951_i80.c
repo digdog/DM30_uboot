@@ -253,7 +253,6 @@ void IT8951GetSystemInfo(void *pBuf)
     I80IT8951DevInfo *pstDevInfo;
     TWord i;
 
-RETRY:
     //Send I80 CMD
     LCDWriteCmdCode(USDEF_I80_CMD_GET_DEV_INFO);
 
@@ -412,7 +411,7 @@ void IT8951PowerOff(void)
    LCDWriteData(0);
 }
 
-TWord IT8951GetTemperature()
+TWord IT8951GetTemperature(void)
 {
     TWord temper0, temper1;
 
@@ -441,7 +440,7 @@ void IT8951SetTemperature(TWord temper)
     LCDWriteData(temper); 
 }
 
-TWord IT8951GetVCOM()
+TWord IT8951GetVCOM(void)
 {
     TWord vcom;
 

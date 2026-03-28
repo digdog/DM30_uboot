@@ -217,6 +217,7 @@ void serial_printf(const char *fmt, ...)
 	 * anything we ever want to print.
 	 */
 	i = vsprintf(printbuffer, fmt, args);
+	(void)i;
 	va_end(args);
 
 	serial_puts(printbuffer);
@@ -285,6 +286,7 @@ void fprintf(int file, const char *fmt, ...)
 	 * anything we ever want to print.
 	 */
 	i = vsprintf(printbuffer, fmt, args);
+	(void)i;
 	va_end(args);
 
 	/* Send to desired file */
@@ -379,6 +381,7 @@ void printf(const char *fmt, ...)
 	 * anything we ever want to print.
 	 */
 	i = vsprintf(printbuffer, fmt, args);
+	(void)i;
 	va_end(args);
 
 	/* Print the string */
@@ -394,6 +397,7 @@ void vprintf(const char *fmt, va_list args)
 	 * anything we ever want to print.
 	 */
 	i = vsprintf(printbuffer, fmt, args);
+	(void)i;
 
 	/* Print the string */
 	puts(printbuffer);

@@ -99,8 +99,9 @@ static int lcd_getfgcolor (void);
 #ifdef IMPROVE_EINK
 static ushort g_y_offset = 0; // improve scroll up performance.
 static ushort g_auto_refresh = 0;
-extern int  mpulcd_is_init();
+extern int  mpulcd_is_init(void);
 extern void mpulcd_update_rectangle(uchar* pBase, ushort x, ushort y, ushort width, ushort height);
+extern void IT8951WaitForDisplayReady(void);
 #endif
 
 /************************************************************************/
@@ -243,7 +244,7 @@ void lcd_puts (const char *s)
 }
 
 #ifdef IMPROVE_EINK
-void lcd_refresh()
+void lcd_refresh(void)
 {
 	if (mpulcd_is_init() != 0) {
 		ushort max_y = CONSOLE_ROWS * VIDEO_FONT_HEIGHT;
@@ -313,6 +314,7 @@ static void lcd_drawchars (ushort x, ushort y, uchar *str, int count)
 
 	dest = (uchar *)(lcd_base + y * lcd_line_length + x * (1 << LCD_BPP) / 8);
 	off  = x * (1 << LCD_BPP) % 8;
+	(void)off;
 
 	for (row=0;  row < VIDEO_FONT_HEIGHT;  ++row, dest += lcd_line_length)  {
 		uchar *s = str;

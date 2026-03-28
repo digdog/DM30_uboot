@@ -29,8 +29,11 @@ ifeq ($(POWERFLAG),MXS_VBUS_CURRENT_DRAW)
 CFLAGS += -DMXS_VBUS_CURRENT_DRAW
 endif
 
-CFLAGS 	+= -Wall $(INCLUDEDIRS) -I./ -O -DSTMP378x -D$(ARCH)
-LDFLAGS = -static -gc-sections -nostdlib -T $(BOOT_LAYOUT)
+CFLAGS 	+= -Wall $(INCLUDEDIRS) -I./ -O -DSTMP378x -D$(ARCH) \
+	   -std=gnu11 -ffreestanding -fno-builtin \
+	   -Wno-implicit-function-declaration -Wno-unused-variable \
+	   -Wno-parentheses -Wno-builtin-declaration-mismatch
+LDFLAGS = -static -nostdlib -T $(BOOT_LAYOUT)
 
 
 #TOP_LEVEL_OBJS = power_prep.o
@@ -70,7 +73,7 @@ all: power_prep
 #
 .PHONY: build build_prep clean
 power_prep: libs $(BOOT_LAYOUT) $(POWER_PREP_OBJS) $(CORE_OBJS)
-	$(LD) -o $@ $(POWER_PREP_OBJS) $(ddi_libs) $(hw_libs) \
+	$(LD) -o $@ $(POWER_PREP_OBJS) --start-group $(ddi_libs) $(hw_libs) --end-group \
 	$(LDFLAGS) $(CORE_OBJS)
 	@nm -n $@ > power_prep.map
 

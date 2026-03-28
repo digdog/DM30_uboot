@@ -42,6 +42,7 @@ extern int fat_register_device(block_dev_desc_t *dev_desc, int part_no);
 extern long file_fat_read(const char *filename, void *buffer, unsigned long maxsize);
 extern int file_fat_ls(const char *dir);
 extern void lcd_enable (void);
+extern void lcd_refresh(void);
 extern int mxs_mmc_is_plugged(void);
 extern int dm30_patching_key(void);
 
@@ -709,7 +710,7 @@ typedef struct _vcom_info_{
 	uint16_t data2;
 } VCOMInfo;
 
-uint16_t load_vcom()
+uint16_t load_vcom(void)
 {
 	return 0;
 }
@@ -722,10 +723,6 @@ int load_logo(uint32_t address)
 	int blk;
 	u32 n;
 	u32 cnt;
-	u32 logo_size;
-	u32 read_size;
-	uint8_t buf[SECTION_SIZE];
-	uint8_t *pDst;
 
 	mmc = find_mmc_device(dev);
 	if (mmc) {
@@ -1010,7 +1007,7 @@ err:
 	return ret;
 }
 
-static int get_battery_refvoltage(void)
+static int __attribute__((unused)) get_battery_refvoltage(void)
 {
 	if (1)
 		return get_battery_refvoltage_from_nand();

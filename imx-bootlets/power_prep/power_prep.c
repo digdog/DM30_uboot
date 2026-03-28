@@ -75,6 +75,8 @@ void PowerPrep_StopCharger();
 void PowerPrep_SetCharger(unsigned int current);
 bool PowerPrep_IsBatteryGood();
 void PowerPrep_CPUClock2XTAL(void);
+void PowerPrep_CPUClock2PLL(void);
+void PowerPrep_Delay(unsigned int microSec);
 void PowerPrep_PrintBatteryVoltage(unsigned int value);
 ////////////////////////////////////////////////////////////////////////////////
 // Definitions

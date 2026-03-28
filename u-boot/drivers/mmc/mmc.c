@@ -153,6 +153,7 @@ mmc_bwrite(int dev_num, ulong start, lbaint_t blkcnt, const void*src)
 			cmd.flags = MMC_CMD_AC;
 			stoperr = mmc_send_cmd(mmc, &cmd, NULL);
 		}
+		(void)stoperr;
 
 		if (blk_left > MAX_BLK_CNT) {
 			blk_left -= MAX_BLK_CNT;
@@ -285,6 +286,7 @@ static ulong mmc_bread(int dev_num, ulong start, lbaint_t blkcnt, void *dst)
 			cmd.flags = MMC_CMD_AC;
 			stoperr = mmc_send_cmd(mmc, &cmd, NULL);
 		}
+		(void)stoperr;
 
 		if (blk_left > MAX_BLK_CNT) {
 			blk_left -= MAX_BLK_CNT;
